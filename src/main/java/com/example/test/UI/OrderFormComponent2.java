@@ -1,6 +1,7 @@
 package com.example.test.UI;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import com.example.test.Entities.Customer;
 import com.example.test.Entities.Item;
@@ -15,6 +16,7 @@ import com.vaadin.data.fieldgroup.FieldGroup.CommitException;
 import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.event.FieldEvents.TextChangeEvent;
 import com.vaadin.event.FieldEvents.TextChangeListener;
+import com.vaadin.ui.Grid;
 import com.vaadin.ui.Notification;
 
 public class OrderFormComponent2 extends OrderFormDesign{
@@ -47,10 +49,11 @@ public class OrderFormComponent2 extends OrderFormDesign{
 		buildDisplay();
 	}
 	
-	private void buildDisplay() {
-		grid.setColumns("SN", "Item Name", "Qty", "Rate", "Price", "Discount (%)");
+	public void buildDisplay() {
+		grid = new Grid();
+		grid.setColumns("SN", "Item Name", "Qty", "Rate", "Amount", "Discount (%)");
 		grid.setHeight("200px");
-		addComponent(grid);		
+		addComponent(grid);			
 	}
 
 	private void buildAndBind(Order order) {
@@ -65,8 +68,7 @@ public class OrderFormComponent2 extends OrderFormDesign{
 		itemBinder = new BeanFieldGroup<Item>(Item.class);	
 		this.item = new Item();
 		itemBinder.bindMemberFields(this);	
-		itemBinder.setItemDataSource(this.item);
-		
+		itemBinder.setItemDataSource(this.item);		
 	}
 
 	private void buildControls() {	
@@ -97,8 +99,10 @@ public class OrderFormComponent2 extends OrderFormDesign{
 				Notification.show("Please enter valid rate !");
 			}else {
 				grid.addRow(Long.toString(countItems), ((Product)items.getValue()).getProduct_name(), qty.getValue(), rate.getValue(), amount.getValue(), discount.getValue());
+				
+				// using container to populate grid
 //				BeanItemContainer<Item> itemContainer = new BeanItemContainer<Item>(Item.class, Arrays.asList(itemBinder.getItemDataSource().getBean()));
-//				orderComponent.grid.setContainerDataSource(itemContainer);
+//				grid.setContainerDataSource(itemContainer);
 			}
 			
 			// set and calculate total price, vat amount
@@ -148,6 +152,8 @@ public class OrderFormComponent2 extends OrderFormDesign{
 			// setting orderBinder with new ORDER object
 			this.order = new Order();
 			orderComponent2.orderBinder.setItemDataSource(this.order);
+//			removeComponent(grid);
+//			buildDisplay();
 		});
 		
 		qty.addTextChangeListener(new TextChangeListener() {

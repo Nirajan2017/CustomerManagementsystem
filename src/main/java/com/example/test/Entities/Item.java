@@ -92,6 +92,11 @@ public class Item {
 	public void setDiscount(double discount) {
 		this.discount = discount;
 	}
+
+	@Override
+	public String toString() {
+		return "Item [items=" + items + "]";
+	}
 }
 
 

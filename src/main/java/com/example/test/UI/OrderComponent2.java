@@ -136,9 +136,12 @@ public class OrderComponent2 extends ComponentDesignTemplate implements View{
 		
 		deleteButton.addClickListener(event ->{
 			if (orderId != null) {
+				// remove an order
 				orderService.removeOrder(orderId);
 				listOrders(null);
-//				orderFormComponent2.grid.re
+				// deleting the item records which are related to the deleted order from the grid
+				orderFormComponent2.removeComponent(orderFormComponent2.grid); // remove the grid
+				orderFormComponent2.buildDisplay(); // create a new empty grid
 			}else {
 				Notification.show("Please select a grid row to delete");
 			}

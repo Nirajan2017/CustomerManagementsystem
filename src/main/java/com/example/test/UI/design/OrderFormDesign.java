@@ -14,7 +14,7 @@ public class OrderFormDesign extends VerticalLayout{
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	protected TextField qty, rate, amount, discount;
+	protected TextField  qty, rate, amount, discount;
 	protected Label priceBeforeTaxLabel;
     protected Button addItemButton;
     protected Button close;
@@ -45,7 +45,7 @@ public class OrderFormDesign extends VerticalLayout{
 		items = new ComboBox("ITEMS");
 		
 		// Grid Component
-		grid = new Grid();
+//		grid = new Grid();
 		
 		// Horizontal Component
 		HorizontalLayout layout1 = new HorizontalLayout(rate, amount);
