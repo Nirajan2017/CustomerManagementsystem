@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 
 import com.example.test.Entities.Customer;
-import com.example.test.Entities.Item;
 import com.example.test.Entities.Order;
 import com.example.test.Service.CustomerService;
 import com.example.test.Service.ItemService;
@@ -17,8 +16,6 @@ import com.vaadin.data.fieldgroup.BeanFieldGroup;
 import com.vaadin.data.fieldgroup.FieldGroup.CommitException;
 import com.vaadin.data.util.BeanItem;
 import com.vaadin.data.util.BeanItemContainer;
-import com.vaadin.event.FieldEvents.TextChangeEvent;
-import com.vaadin.event.FieldEvents.TextChangeListener;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.spring.annotation.SpringView;
@@ -31,20 +28,20 @@ import com.vaadin.ui.TextField;
 
 @UIScope
 @SpringView(name="OrderComponent")
-public class OrderComponent extends ComponentDesignTemplate implements View{
-
+public class OrderComponent extends ComponentDesignTemplate implements View{	
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
 	private final ProductService productService;
 	private CustomerService customerService;
+	private OrderFormComponent orderFormComponent;
 	@Autowired 
 	private OrderService orderService;
 	@Autowired 
 	private ItemService itemService;
 	public boolean isFormOpen = false;
-	private Long itemId;
+	private Long orderId;
 	public BeanFieldGroup<Order> orderBinder;
 	public DateField date;
 	public ComboBox customer;
@@ -54,15 +51,11 @@ public class OrderComponent extends ComponentDesignTemplate implements View{
 	public OrderComponent(ProductService productService, CustomerService customerService) {
 		this.productService = productService;
 		this.customerService = customerService;
-		
-		buildComponents();
-		buildDisplay();		
-		buildAndBind();
-		buildToolBar();
 //		buildFooter();
+	
 	}
-
-//	private void buildFooter() {
+	
+//private void buildFooter() {
 //		
 //		discount.addTextChangeListener(new TextChangeListener() {
 //			@Override
@@ -111,61 +104,63 @@ public class OrderComponent extends ComponentDesignTemplate implements View{
 		net_price.setEnabled(false);
 		
 		toolBarHorizontalLayout.addComponents(date, customer);
-		HorizontalLayout footerLayout = new HorizontalLayout(gross_price, vat_amount, net_price);
+		HorizontalLayout footerLayout = new HorizontalLayout(gross_price,  vat_amount, net_price);
 		footerLayout.setSpacing(true);
 		
 		addComponents(footerLayout);
 	}
 
 	private void buildDisplay() {
-		gridComponent.setColumns("SN", "ItemName", "Qty", "Rate", "Amount");
+		gridComponent.setColumns("order_id", "date", "customer", "gross_price", "vat_amount", "net_price");
 		gridComponent.addItemClickListener(listener -> {
-			itemId = Long.valueOf((Integer)listener.getItemId());
+			 orderId = ((Order)listener.getItemId()).getOrder_id();
 			 if (listener.isDoubleClick()) { 
-				 edit(itemService.getItemById(itemId));					
+				 edit((Order)listener.getItemId());					
 			 }			 
 		});		
 	}
 
 	private void buildToolBar() {
 		// listener for the text field to search
-		search.addTextChangeListener(event -> listItems(event.getText()));
+		search.addTextChangeListener(event -> listOrders(event.getText()));
 		
 		// listener for a Button to add new Item
-		addButton.addClickListener(event ->	edit(new Item()));		
+		addButton.addClickListener(event ->	edit(new Order()));		
 		
 		clearFilterTextBtn.addClickListener(event -> search.setValue(""));
 		
 		deleteButton.addClickListener(event ->{
-			if (itemId != null) {
-//				itemService.removeItem(itemId);
-				orderService.removeOrder(itemId);				
-				listItems(null);
+			if (orderId != null) {
+				// remove an order
+				orderService.removeOrder(orderId);
+				listOrders(null);
+				// deleting the item records which are related to the deleted order from the grid
+				orderFormComponent.removeComponent(orderFormComponent.grid); // remove the grid
+				orderFormComponent.buildDisplay(); // create a new empty grid
 			}else {
 				Notification.show("Please select a grid row to delete");
 			}
-		});
-		
+		});		
 	}
 
-	private void edit(Item item) {
+	private void edit(Order order) {
 		if(!isFormOpen) {
-			OrderFormComponent orderFormComponent = new OrderFormComponent(productService, this, orderService, itemService, item); // not sure about this approach, what is the better approach
+			orderFormComponent = new OrderFormComponent(productService, this, orderService, itemService, order); // not sure about this approach, what is the better approach
 			gridAndFormHorizontalLayout.addComponent(orderFormComponent);
 			orderFormComponent.setVisible(true);
 			isFormOpen = true;
 		}
 	}
 	
-	public void listItems(String filterText) {
-		BeanItemContainer<Item> itemContainer;
+	public void listOrders(String filterText) {
+		BeanItemContainer<Order> orderContainer;
 		if (StringUtils.isEmpty(filterText)) {
-			itemContainer = new BeanItemContainer<Item>(Item.class, itemService.listItem());
+			orderContainer = new BeanItemContainer<Order>(Order.class, orderService.listOrder());
 		} else {
-			itemContainer = new BeanItemContainer<Item>(Item.class, itemService.getItemByName(filterText));
+			orderContainer = new BeanItemContainer<Order>(Order.class, orderService.getOrderByName(filterText));
 		}
-		gridComponent.removeAllColumns();
-		gridComponent.setContainerDataSource(itemContainer);
+//		gridComponent.removeAllColumns();
+		gridComponent.setContainerDataSource(orderContainer);
 	}
 	
 	public void commitOrderBinder() {
@@ -180,7 +175,11 @@ public class OrderComponent extends ComponentDesignTemplate implements View{
 	
 	@Override
 	public void enter(ViewChangeEvent event) {
-		// TODO Auto-generated method stub
+		buildComponents();
+		buildToolBar();
+		buildAndBind();
+		buildDisplay();	
 		
 	}
+
 }

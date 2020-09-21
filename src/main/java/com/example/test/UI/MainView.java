@@ -40,14 +40,12 @@ public class MainView extends UI{
 	protected Button customer;
 	protected Button product;
 	protected Button order;
-	protected Button order_optional;
 	protected HorizontalLayout toolbar;
 	protected Panel display;
 	protected VerticalLayout verticalLayout;
 	private ProductComponent productComponent; // created, otherwise "itemService" needs to be instantiated here and passed through constructor
 	private CustomerComponent customerComponent;
 	private OrderComponent orderComponent;
-	private OrderComponent2 orderComponent2;
 	
 	@Autowired
 	CustomerService customerService;
@@ -55,11 +53,10 @@ public class MainView extends UI{
 	ProductService productService;
 	
 	@Autowired
-	public MainView(CustomerComponent customerComponent, ProductComponent productComponent, OrderComponent orderComponent, OrderComponent2 orderComponent2) {
+	public MainView(CustomerComponent customerComponent, ProductComponent productComponent, OrderComponent orderComponent) {
 		this.customerComponent = customerComponent;
 		this.productComponent = productComponent;
 		this.orderComponent = orderComponent;
-		this.orderComponent2 = orderComponent2;
 	}
 
 	@Override
@@ -68,7 +65,7 @@ public class MainView extends UI{
 		buidControls();	
 		
 		// load some random data during application startup for testing
-		loadData();		
+		// loadData();		
 	}
 	
 	private void loadData() {
@@ -94,7 +91,6 @@ public class MainView extends UI{
 		nav.addView("CustomerComponent", customerComponent);
 		nav.addView("ProductComponent", productComponent);
 		nav.addView("OrderComponent", orderComponent);
-		nav.addView("OrderComponent2", orderComponent2);
 		nav.addView("DefaultComponent", ErrorView.class);
 		setNavigator(nav);	
 		
@@ -110,10 +106,6 @@ public class MainView extends UI{
 			nav.navigateTo("OrderComponent");
 		});
 		
-		order_optional.addClickListener(e -> {
-			nav.navigateTo("OrderComponent2");
-		});
-		
 		setPollInterval(300);
 		
 		nav.setErrorView(ErrorView.class);		
@@ -125,13 +117,12 @@ public class MainView extends UI{
 		
 		customer = new Button("Customer");
 		order = new Button("Order");
-		order_optional = new Button("Old Order Approach");
 		product = new Button("Product");
 		
 		toolbar = new HorizontalLayout();
 		toolbar.setWidth("100%");
 		toolbar.setHeight(50, Unit.PIXELS);		
-		toolbar.addComponents(customer, order, order_optional, product);
+		toolbar.addComponents(customer, order, product);
 		
 		display = new Panel();
 		display.setWidth("100%");

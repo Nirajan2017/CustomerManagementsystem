@@ -2,8 +2,6 @@ package com.example.test.UI;
 
 
 import org.springframework.beans.factory.annotation.Autowired;
-
-import com.example.test.Entities.Customer;
 import com.example.test.Entities.Product;
 import com.example.test.Service.ProductService;
 import com.example.test.UI.design.ComponentDesignTemplate;
@@ -30,8 +28,6 @@ public class ProductComponent extends ComponentDesignTemplate implements View{
 	@Autowired
 	public ProductComponent(ProductService productService) {
 		this.productService = productService;
-		buildToolBar();
-		buildDisplay();
 	}
 	
 	private void buildDisplay() {
@@ -91,8 +87,8 @@ public class ProductComponent extends ComponentDesignTemplate implements View{
 	
 	@Override
 	public void enter(ViewChangeEvent event) {
-		
-		
+		buildToolBar();
+		buildDisplay();		
 	}
 	
 	

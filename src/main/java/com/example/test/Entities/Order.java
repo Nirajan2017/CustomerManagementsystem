@@ -29,7 +29,7 @@ public class Order implements Serializable, Cloneable{
 	private Long order_id;
 	
 	@Column(name = "date")
-	private Date date;
+	private Date date = new Date();
 	
 	@Column(name = "gross_price")
 	private double gross_price;

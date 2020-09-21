@@ -1,6 +1,7 @@
 package com.example.test.UI;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import com.example.test.Entities.Customer;
 import com.example.test.Entities.Item;
@@ -15,6 +16,7 @@ import com.vaadin.data.fieldgroup.FieldGroup.CommitException;
 import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.event.FieldEvents.TextChangeEvent;
 import com.vaadin.event.FieldEvents.TextChangeListener;
+import com.vaadin.ui.Grid;
 import com.vaadin.ui.Notification;
 
 public class OrderFormComponent extends OrderFormDesign{
@@ -26,7 +28,7 @@ public class OrderFormComponent extends OrderFormDesign{
 	private final ProductService productService;
 	private final OrderService orderService;
 	private final ItemService itemService;
-	private final OrderComponent orderComponent;	
+	private final OrderComponent orderComponent2;	
 	private Order order;
 	private Item item;
 	private BeanFieldGroup<Item> itemBinder;
@@ -34,18 +36,27 @@ public class OrderFormComponent extends OrderFormDesign{
 	private Long countItems = 0L;
 	private double final_price = 0;
 	
-	public OrderFormComponent(ProductService productService, OrderComponent orderComponent, OrderService orderService, ItemService itemService, Item item) {
+	public OrderFormComponent(ProductService productService, OrderComponent orderComponent2, OrderService orderService, ItemService itemService, Order order) {
 		// TODO Auto-generated constructor stub
 		this.productService = productService;
-		this.orderComponent = orderComponent;
+		this.orderComponent2 = orderComponent2;
 		this.itemService = itemService;		
 		this.orderService = orderService;
+		this.order = order;
 		
-		buildAndBind(item);
+		buildAndBind(order);
 		buildControls();
+		buildDisplay();
+	}
+	
+	public void buildDisplay() {
+		grid = new Grid();
+		grid.setColumns("SN", "Item Name", "Qty", "Rate", "Amount", "Discount (%)");
+		grid.setHeight("200px");
+		addComponent(grid);			
 	}
 
-	private void buildAndBind(Item item) {
+	private void buildAndBind(Order order) {
 		// populating combobox with item values
 		BeanItemContainer<Product> productContainer = new BeanItemContainer<Product>(Product.class, productService.listProduct());
 		items.setItemCaptionPropertyId("product_name");
@@ -55,10 +66,9 @@ public class OrderFormComponent extends OrderFormDesign{
 		itemCollections = new ArrayList<Item>();
 		
 		itemBinder = new BeanFieldGroup<Item>(Item.class);	
-		this.item = item;
+		this.item = new Item();
 		itemBinder.bindMemberFields(this);	
-		itemBinder.setItemDataSource(this.item);
-		
+		itemBinder.setItemDataSource(this.item);		
 	}
 
 	private void buildControls() {	
@@ -88,25 +98,25 @@ public class OrderFormComponent extends OrderFormDesign{
 			}else if(itemBinder.getItemDataSource().getBean().getRate() == 0){
 				Notification.show("Please enter valid rate !");
 			}else {
-				orderComponent.gridComponent.addRow(Long.toString(countItems), ((Product)items.getValue()).getProduct_name(), qty.getValue(), rate.getValue(), amount.getValue());
+				grid.addRow(Long.toString(countItems), ((Product)items.getValue()).getProduct_name(), qty.getValue(), rate.getValue(), amount.getValue(), discount.getValue());
 				
-				// using item container
+				// using container to populate grid
 //				BeanItemContainer<Item> itemContainer = new BeanItemContainer<Item>(Item.class, Arrays.asList(itemBinder.getItemDataSource().getBean()));
-//				orderComponent.gridComponent.setContainerDataSource(itemContainer);
-				
-				// set and calculate total price, vat amount
-				final_price += Double.parseDouble(amount.getValue());
-				orderComponent.gross_price.setValue(Double.toString(final_price));
-				orderComponent.vat_amount.setValue(Double.toString(final_price * 0.13));
-				orderComponent.net_price.setValue(Double.toString(final_price - (final_price * 0.13)));
-				
-				placeOrderButton.setEnabled(true); // enabled only after an item is added to for sale
-				discount.setEnabled(true); // enabled only after an item is added to for sale
-				
-				// setting itemBinder with new ITEM object
-				this.item = new Item();
-				itemBinder.setItemDataSource(this.item);
+//				grid.setContainerDataSource(itemContainer);
 			}
+			
+			// set and calculate total price, vat amount
+			final_price += Double.parseDouble(amount.getValue());
+			orderComponent2.gross_price.setValue(Double.toString(final_price));
+			orderComponent2.vat_amount.setValue(Double.toString(final_price * 0.13));
+			orderComponent2.net_price.setValue(Double.toString(final_price - (final_price * 0.13)));
+			
+			placeOrderButton.setEnabled(true); // enabled only after an item is added to for sale
+			discount.setEnabled(true); // enabled only after an item is added to for sale
+			
+			// setting itemBinder with new ITEM object
+			this.item = new Item();
+			itemBinder.setItemDataSource(this.item);
 		});
 		
 		items.addValueChangeListener(event ->{
@@ -116,19 +126,20 @@ public class OrderFormComponent extends OrderFormDesign{
 		
 		placeOrderButton.addClickListener(event -> {	
 			// bind order to its respective fields
-			orderComponent.commitOrderBinder();
+			orderComponent2.commitOrderBinder();
 				
 			// set order details
-			order = orderComponent.orderBinder.getItemDataSource().getBean();
-			order.setCustomer((Customer)orderComponent.customer.getValue());
+			order = orderComponent2.orderBinder.getItemDataSource().getBean();
+			order.setCustomer((Customer)orderComponent2.customer.getValue());
 
 			System.out.println("----------------------------");
-			System.out.println("Order Gross Price: " + orderComponent.orderBinder.getItemDataSource().getBean().getGross_price());
-			System.out.println("Order Vat Amount: " + orderComponent.orderBinder.getItemDataSource().getBean().getVat_amount());
-			System.out.println("Order Net Amount: " + orderComponent.orderBinder.getItemDataSource().getBean().getNet_price());
+			System.out.println("Order Gross Price: " + orderComponent2.orderBinder.getItemDataSource().getBean().getGross_price());
+			System.out.println("Order Vat Amount: " + orderComponent2.orderBinder.getItemDataSource().getBean().getVat_amount());
+			System.out.println("Order Net Amount: " + orderComponent2.orderBinder.getItemDataSource().getBean().getNet_price());
 			
 			// save order
-			orderService.addOrder(order);			
+			orderService.addOrder(order);
+			orderComponent2.listOrders(null);
 			
 			for(Item item: itemCollections) {
 				// set order for each item
@@ -136,12 +147,13 @@ public class OrderFormComponent extends OrderFormDesign{
 				// save item
 				itemService.addItem(item);
 			}			
-			itemCollections.clear();
+			itemCollections.clear();	
 			
 			// setting orderBinder with new ORDER object
 			this.order = new Order();
-			orderComponent.orderBinder.setItemDataSource(this.order);
-			
+			orderComponent2.orderBinder.setItemDataSource(this.order);
+//			removeComponent(grid);
+//			buildDisplay();
 		});
 		
 		qty.addTextChangeListener(new TextChangeListener() {
@@ -164,24 +176,24 @@ public class OrderFormComponent extends OrderFormDesign{
 			public void textChange(TextChangeEvent event) {
 				if(event.getText().length() > 0) {
 					if(!event.getText().equals(null)) {
-						double priceAfterDiscount = Double.parseDouble(orderComponent.gross_price.getValue()) - ((Double.parseDouble(event.getText())/100) * Double.parseDouble(orderComponent.gross_price.getValue()));
-						orderComponent.vat_amount.setValue(Double.toString(priceAfterDiscount * 0.13));
-						orderComponent.net_price.setValue(Double.toString(priceAfterDiscount - (priceAfterDiscount * 0.13)));
+						double priceAfterDiscount = Double.parseDouble(orderComponent2.gross_price.getValue()) - ((Double.parseDouble(event.getText())/100) * Double.parseDouble(orderComponent2.gross_price.getValue()));
+						orderComponent2.vat_amount.setValue(Double.toString(priceAfterDiscount * 0.13));
+						orderComponent2.net_price.setValue(Double.toString(priceAfterDiscount - (priceAfterDiscount * 0.13)));
 					}
 				}else {
-					orderComponent.vat_amount.setValue(Double.toString(Double.parseDouble(orderComponent.gross_price.getValue()) * 0.13));
-					orderComponent.net_price.setValue(Double.toString(Double.parseDouble(orderComponent.gross_price.getValue()) - (Double.parseDouble(orderComponent.gross_price.getValue()) * 0.13)));
+					orderComponent2.vat_amount.setValue(Double.toString(Double.parseDouble(orderComponent2.gross_price.getValue()) * 0.13));
+					orderComponent2.net_price.setValue(Double.toString(Double.parseDouble(orderComponent2.gross_price.getValue()) - (Double.parseDouble(orderComponent2.gross_price.getValue()) * 0.13)));
 				}
 			}			
-		});	
+		});
 		
 		close.addClickListener(event -> {
 			setVisible(false);
-			orderComponent.isFormOpen = false;
-			orderComponent.gridComponent.setData(null);			
+			orderComponent2.isFormOpen = false;
+			orderComponent2.gridComponent.setData(null);			
 		});		
 	}
-
+	
 	private void commitItemBinder() {
 		try {
 			itemBinder.commit(); // important		
@@ -191,4 +203,5 @@ public class OrderFormComponent extends OrderFormDesign{
 			e.printStackTrace();
 		}
 	}
+
 }

@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 
 import com.example.test.Entities.Customer;
-import com.example.test.Entities.Product;
 import com.example.test.Service.CustomerService;
 import com.example.test.UI.design.ComponentDesignTemplate;
 import com.vaadin.data.util.BeanItemContainer;
@@ -35,8 +34,6 @@ public class CustomerComponent extends ComponentDesignTemplate implements View {
 	@Autowired
 	public CustomerComponent(CustomerService customerService) {
 		this.customerService = customerService;
-		buildToolBar();
-		buildDisplay();
 	}
 
 	private void buildDisplay() {
@@ -83,7 +80,7 @@ public class CustomerComponent extends ComponentDesignTemplate implements View {
 			container = new BeanItemContainer<Customer>(Customer.class, customerService.getCustomerByName(filterText));
 		}
 		
-		// fills the combobox with customer data
+		// fills the grid with customer data
 		gridComponent.setContainerDataSource(container);		
     }
 
@@ -99,8 +96,8 @@ public class CustomerComponent extends ComponentDesignTemplate implements View {
 
 	@Override
 	public void enter(ViewChangeEvent event) {
-		// TODO Auto-generated method stub
-
+		buildToolBar();
+		buildDisplay();
 	}
 
 }
